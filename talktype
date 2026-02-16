@@ -1,0 +1,107 @@
+#!/bin/bash
+# TalkType command-line interface
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+show_help() {
+    cat << 'EOF'
+TalkType - Voice Typing for Wayland/GNOME
+
+USAGE:
+    talktype [COMMAND]
+
+COMMANDS:
+    help, -h, --help     Show this help message
+    start                Start the daemon
+    stop                 Stop the daemon
+    restart              Restart the daemon
+    status               Show daemon status
+    logs                 Follow logs in real-time
+    test                 Show last 20 log entries
+    recent               Show recent transcriptions
+    check                Quick health check
+    install              Run installation script
+
+EXAMPLES:
+    talktype              Show this help
+    talktype logs         Watch logs in real-time
+    talktype check        Check if everything is working
+    talktype restart      Restart the daemon
+
+USAGE WORKFLOW:
+    1. Press your hotkey (e.g., Ctrl+Space)
+    2. Speak clearly and loudly for 2+ seconds
+    3. Press hotkey again to stop recording
+    4. Wait for "📋 Copied to clipboard!" message
+    5. Paste with Ctrl+V (or Ctrl+Shift+V in terminal)
+
+TROUBLESHOOTING:
+    • Not detecting speech? Speak louder!
+      Audio energy must be > 0.005
+      Check with: talktype logs
+
+    • Daemon not running?
+      talktype start
+
+    • Check recent activity:
+      talktype check
+
+FILES:
+    Config:    ~/.config/systemd/user/talktype.service
+    Logs:      journalctl --user -u talktype
+    Aliases:   ~/talktype/talktype-aliases.sh
+
+For detailed documentation, see:
+    ~/talktype/WAYLAND_SETUP.md
+    https://github.com/Guru227/talktype
+
+EOF
+}
+
+case "${1:-help}" in
+    help|-h|--help)
+        show_help
+        ;;
+    start)
+        systemctl --user start talktype
+        echo -e "${GREEN}✓${NC} Daemon started"
+        ;;
+    stop)
+        systemctl --user stop talktype
+        echo -e "${YELLOW}⚠${NC} Daemon stopped"
+        ;;
+    restart)
+        systemctl --user restart talktype
+        echo -e "${GREEN}✓${NC} Daemon restarted"
+        ;;
+    status)
+        systemctl --user status talktype
+        ;;
+    logs)
+        journalctl --user -u talktype -f
+        ;;
+    test)
+        journalctl --user -u talktype -n 20 --no-pager
+        ;;
+    recent)
+        journalctl --user -u talktype --no-pager | grep "✅" | tail -10
+        ;;
+    check)
+        source "$SCRIPT_DIR/talktype-aliases.sh" 2>/dev/null
+        talktype-check
+        ;;
+    install)
+        "$SCRIPT_DIR/install_wayland.sh"
+        ;;
+    *)
+        echo -e "${RED}Unknown command: $1${NC}"
+        echo "Run 'talktype help' for usage"
+        exit 1
+        ;;
+esac

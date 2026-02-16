@@ -4,10 +4,11 @@ After=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=%h/talktype/venv/bin/python %h/talktype/talktype_daemon.py
+ExecStart=%h/talktype/venv/bin/python -u %h/talktype/talktype_daemon.py
 Restart=on-failure
 RestartSec=5
 Environment=DISPLAY=:0
+Environment=PYTHONUNBUFFERED=1
 StandardOutput=journal
 StandardError=journal
 
