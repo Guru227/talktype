@@ -92,18 +92,12 @@ echo "✓ Systemd service installed"
 # Step 7: Set up aliases
 echo ""
 echo "Step 7: Setting up bash aliases..."
-if grep -q "# TalkType aliases" ~/.bashrc; then
-    echo "✓ Aliases already in ~/.bashrc"
+if grep -q "source.*talktype-aliases.sh" ~/.bashrc; then
+    echo "✓ Aliases already sourced in ~/.bashrc"
 else
-    cat >> ~/.bashrc << 'EOF'
-
-# TalkType aliases
-alias talktype-logs='journalctl --user -u talktype -f'
-alias talktype-status='systemctl --user status talktype'
-alias talktype-restart='systemctl --user restart talktype'
-alias talktype-stop='systemctl --user stop talktype'
-alias talktype-start='systemctl --user start talktype'
-EOF
+    echo "" >> ~/.bashrc
+    echo "# Source TalkType aliases" >> ~/.bashrc
+    echo "[ -f \"$SCRIPT_DIR/talktype-aliases.sh\" ] && source \"$SCRIPT_DIR/talktype-aliases.sh\"" >> ~/.bashrc
     echo "✓ Aliases added to ~/.bashrc"
     echo "  Run 'source ~/.bashrc' to use them immediately"
 fi
