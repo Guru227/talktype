@@ -1,0 +1,58 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+    purge)
+        echo "Purging TalkType configuration..."
+
+        # Remove virtual environment
+        if [ -d /opt/talktype/venv ]; then
+            echo "Removing virtual environment..."
+            rm -rf /opt/talktype/venv
+        fi
+
+        # Remove the main directory
+        if [ -d /opt/talktype ]; then
+            echo "Removing TalkType installation..."
+            rm -rf /opt/talktype
+        fi
+
+        # Clean up user systemd services (best effort)
+        for user_home in /home/*; do
+            if [ -d "$user_home/.config/systemd/user" ]; then
+                username=$(basename "$user_home")
+
+                # Remove systemd service file
+                if [ -f "$user_home/.config/systemd/user/talktype.service" ]; then
+                    sudo -u "$username" rm -f "$user_home/.config/systemd/user/talktype.service" 2>/dev/null || true
+                fi
+
+                # Reload systemd
+                sudo -u "$username" XDG_RUNTIME_DIR=/run/user/$(id -u "$username") \
+                    systemctl --user daemon-reload 2>/dev/null || true
+            fi
+        done
+
+        echo "TalkType has been completely removed."
+        echo ""
+        echo "Note: User-specific settings in ~/.bashrc were NOT removed."
+        echo "To remove aliases, edit ~/.bashrc and remove TalkType sections."
+        ;;
+
+    remove)
+        echo "TalkType removed (configuration preserved)."
+        echo "Run 'sudo apt purge talktype' to remove all configuration."
+        ;;
+
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        ;;
+
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

@@ -1,0 +1,29 @@
+Source: talktype
+Section: utils
+Priority: optional
+Maintainer: Guru227 <guru@example.com>
+Build-Depends: debhelper-compat (= 12), python3, python3-venv, dh-python
+Standards-Version: 4.5.0
+Homepage: https://github.com/Guru227/talktype
+
+Package: talktype
+Architecture: all
+Depends: ${misc:Depends}, ${python3:Depends},
+         python3 (>= 3.8),
+         python3-venv,
+         python3-pip,
+         xdotool,
+         xclip,
+         portaudio19-dev,
+         systemd
+Description: Push-to-talk voice typing for Wayland/GNOME
+ TalkType provides voice-to-text dictation using local Whisper transcription.
+ Works on Wayland/GNOME using keyboard shortcuts and clipboard workflow.
+ .
+ Features:
+  - Local, private transcription using faster-whisper
+  - Works on Wayland/GNOME with keyboard shortcuts
+  - Automatic clipboard copy for easy pasting
+  - Systemd integration for auto-start
+  - Configurable speech detection threshold
+  - Real-time audio energy monitoring

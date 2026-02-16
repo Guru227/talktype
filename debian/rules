@@ -1,0 +1,38 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+export PYBUILD_NAME = talktype
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_install:
+	# Create directory structure
+	mkdir -p debian/talktype/opt/talktype
+	mkdir -p debian/talktype/usr/local/bin
+
+	# Copy all files to /opt/talktype
+	cp -r $(CURDIR)/*.py debian/talktype/opt/talktype/
+	cp -r $(CURDIR)/*.sh debian/talktype/opt/talktype/
+	cp $(CURDIR)/talktype debian/talktype/opt/talktype/
+	cp $(CURDIR)/requirements.txt debian/talktype/opt/talktype/
+	cp $(CURDIR)/talktype.service debian/talktype/opt/talktype/
+	cp $(CURDIR)/talktype-aliases.sh debian/talktype/opt/talktype/
+	cp -r $(CURDIR)/assets debian/talktype/opt/talktype/ 2>/dev/null || true
+	cp $(CURDIR)/README.md debian/talktype/opt/talktype/
+	cp $(CURDIR)/WAYLAND_SETUP.md debian/talktype/opt/talktype/
+	cp $(CURDIR)/LICENSE debian/talktype/opt/talktype/
+
+	# Make scripts executable
+	chmod +x debian/talktype/opt/talktype/*.sh
+	chmod +x debian/talktype/opt/talktype/talktype
+	chmod +x debian/talktype/opt/talktype/*.py
+
+	# Create symlink for talktype command
+	ln -s /opt/talktype/talktype debian/talktype/usr/local/bin/talktype
+
+override_dh_auto_test:
+	# Skip tests for now
+
+override_dh_usrlocal:
+	# Allow /usr/local usage

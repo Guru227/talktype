@@ -58,3 +58,16 @@ config.local.py
 .env.local
 REDDIT_POSTS_TALKTYPE.md
 *.bak
+
+# Debian package build artifacts
+debian/talktype/
+debian/.debhelper/
+debian/files
+debian/*.log
+debian/*.substvars
+*.deb
+*.build
+*.buildinfo
+*.changes
+*.dsc
+*.tar.*
