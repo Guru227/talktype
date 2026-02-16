@@ -1,10 +1,15 @@
 #!/usr/bin/make -f
 
 export DH_VERBOSE = 1
-export PYBUILD_NAME = talktype
 
 %:
-	dh $@ --with python3 --buildsystem=pybuild
+	dh $@
+
+override_dh_auto_clean:
+	# Skip auto clean
+
+override_dh_auto_build:
+	# Skip auto build
 
 override_dh_auto_install:
 	# Create directory structure
