@@ -6,6 +6,25 @@ Press a hotkey, speak, press again — your words appear wherever you're typing.
 
 ![Demo](assets/demo.gif)
 
+## 🐧 **NEW: Wayland/GNOME Support**
+
+TalkType now works on **Wayland/GNOME** (Ubuntu 24.04+)! Due to Wayland's security model, we use a daemon-based approach:
+
+- ✅ **Works on GNOME Wayland** - No need to switch to X11
+- ✅ **GNOME keyboard shortcuts** - Trigger with Ctrl+Space (or any key combo)
+- ✅ **Clipboard workflow** - Auto-copy transcriptions, paste manually
+- ✅ **Auto-start on boot** - systemd integration included
+- ✅ **Easy installation** - One script sets up everything
+
+**👉 See [WAYLAND_SETUP.md](WAYLAND_SETUP.md) for complete Wayland/GNOME installation guide**
+
+**Quick install for Wayland:**
+```bash
+./install_wayland.sh
+```
+
+---
+
 ## Why TalkType?
 
 When you type, you self-edit and truncate. When you speak, you explain naturally and fully. TalkType bridges that gap — letting you talk to your terminal, your AI assistant, or any app, and have your words appear instantly.
@@ -275,10 +294,13 @@ Voice lets you elaborate naturally without self-editing — often resulting in c
 ### Linux: "No module named 'pynput'"
 Make sure you activated the virtual environment: `source venv/bin/activate`
 
-### Linux: Hotkey not working
-pynput requires X11. If using Wayland, either:
-- Switch to X11 session
-- Run with `GDK_BACKEND=x11` environment variable
+### Linux: Hotkey not working on Wayland
+**If you're on Wayland/GNOME**, use the daemon approach instead:
+- See [WAYLAND_SETUP.md](WAYLAND_SETUP.md) for complete guide
+- Or run: `./install_wayland.sh` for automated setup
+- Uses GNOME keyboard shortcuts instead of global hotkey capture
+
+**If you're on X11**, ensure pynput has proper permissions
 
 ### macOS: Accessibility permissions
 macOS requires accessibility permissions for keyboard monitoring:
@@ -314,10 +336,11 @@ Make sure your microphone is set as the default input device in Windows Sound se
 
 Contributions welcome! Some ideas:
 - [ ] Voice activity detection (auto-stop on silence)
-- [ ] Wayland support (wtype instead of xdotool)
+- [x] **Wayland support** (✅ Done! See WAYLAND_SETUP.md)
 - [ ] Tray icon / visual indicator
 - [ ] Custom vocabulary/prompts
 - [ ] Streaming transcription
+- [ ] Auto-paste on Wayland (if/when compositor support improves)
 
 ## License
 
