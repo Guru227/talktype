@@ -491,24 +491,71 @@ def transcribe_and_paste(audio: np.ndarray):
         show_status("● READY", "Press F9 to record")
 
 
-def get_hotkey(key_name: str):
-    """Convert key name string to pynput key."""
+def parse_hotkey(key_name: str):
+    """Parse hotkey string into (modifiers, key) tuple.
+
+    Examples:
+        "f9" -> (set(), keyboard.Key.f9)
+        "ctrl+space" -> ({keyboard.Key.ctrl_l, keyboard.Key.ctrl_r}, keyboard.Key.space)
+    """
     key_name = key_name.lower().strip()
-    key_map = {
-        "f1": keyboard.Key.f1, "f2": keyboard.Key.f2, "f3": keyboard.Key.f3,
-        "f4": keyboard.Key.f4, "f5": keyboard.Key.f5, "f6": keyboard.Key.f6,
-        "f7": keyboard.Key.f7, "f8": keyboard.Key.f8, "f9": keyboard.Key.f9,
-        "f10": keyboard.Key.f10, "f11": keyboard.Key.f11, "f12": keyboard.Key.f12,
-    }
-    return key_map.get(key_name, keyboard.Key.f9)
+    parts = [p.strip() for p in key_name.split('+')]
+
+    modifiers = set()
+    main_key = None
+
+    for part in parts:
+        if part in ('ctrl', 'control'):
+            modifiers.add(keyboard.Key.ctrl_l)
+            modifiers.add(keyboard.Key.ctrl_r)
+        elif part in ('alt', 'option'):
+            modifiers.add(keyboard.Key.alt_l)
+            modifiers.add(keyboard.Key.alt_r)
+        elif part in ('shift',):
+            modifiers.add(keyboard.Key.shift_l)
+            modifiers.add(keyboard.Key.shift_r)
+        elif part == 'space':
+            main_key = keyboard.Key.space
+        elif part.startswith('f') and len(part) <= 3:
+            # Function keys
+            key_map = {
+                "f1": keyboard.Key.f1, "f2": keyboard.Key.f2, "f3": keyboard.Key.f3,
+                "f4": keyboard.Key.f4, "f5": keyboard.Key.f5, "f6": keyboard.Key.f6,
+                "f7": keyboard.Key.f7, "f8": keyboard.Key.f8, "f9": keyboard.Key.f9,
+                "f10": keyboard.Key.f10, "f11": keyboard.Key.f11, "f12": keyboard.Key.f12,
+            }
+            main_key = key_map.get(part)
+        elif len(part) == 1:
+            # Single character
+            main_key = keyboard.KeyCode.from_char(part)
+
+    if main_key is None:
+        main_key = keyboard.Key.f9  # default
+
+    return (modifiers, main_key)
 
 
-def create_hotkey_handler(hotkey):
-    """Create the hotkey handler function."""
+def create_hotkey_handler(hotkey_config):
+    """Create the hotkey handler function.
+
+    Args:
+        hotkey_config: tuple of (modifiers_set, main_key)
+    """
+    modifiers, main_key = hotkey_config
+    currently_pressed = set()
+
     def on_press(key):
         global state
-        if key != hotkey:
+        currently_pressed.add(key)
+
+        # Check if the hotkey combination is active
+        if main_key not in currently_pressed:
             return
+
+        # For combinations, check if all required modifiers are pressed
+        if modifiers:
+            if not any(mod in currently_pressed for mod in modifiers):
+                return
 
         with state_lock:
             if state == State.IDLE:
@@ -524,7 +571,10 @@ def create_hotkey_handler(hotkey):
                 ).start()
             # TRANSCRIBING: ignore
 
-    return on_press
+    def on_release(key):
+        currently_pressed.discard(key)
+
+    return on_press, on_release
 
 
 def main():
@@ -538,7 +588,7 @@ def main():
     check_dependencies()
     load_whisper_model()
 
-    hotkey = get_hotkey(config.hotkey)
+    hotkey = parse_hotkey(config.hotkey)
     set_terminal_title("TalkType - Ready")
 
     if config.minimal:
@@ -547,8 +597,8 @@ def main():
         print(f"\nReady! Press {config.hotkey.upper()} to record.")
         print("Press Ctrl+C to exit.\n")
 
-    handler = create_hotkey_handler(hotkey)
-    with keyboard.Listener(on_press=handler) as listener:
+    on_press_handler, on_release_handler = create_hotkey_handler(hotkey)
+    with keyboard.Listener(on_press=on_press_handler, on_release=on_release_handler) as listener:
         try:
             listener.join()
         except KeyboardInterrupt:
