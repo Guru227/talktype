@@ -94,8 +94,8 @@ def transcribe(audio):
 
 def paste_text(text):
     """Copy text to clipboard for pasting"""
-    # Copy to clipboard
-    pyperclip.copy(text)
+    # Use wl-copy for Wayland clipboard
+    subprocess.run(["wl-copy", text], check=True)
     # Beep to indicate it's ready to paste
     beep(660, 0.08)
     print(f"📋 Copied to clipboard! Press Ctrl+Shift+V (terminal) or Ctrl+V (other apps) to paste")
